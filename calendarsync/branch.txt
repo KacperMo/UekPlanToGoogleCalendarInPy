@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-<<<<<<< Updated upstream
 # coding=utf-8
 from __future__ import print_function
 import datetime
@@ -51,10 +50,30 @@ def main(day):
 
     service = build('calendar', 'v3', credentials=creds)
     try:
-        event = service.events().insert(calendarId='primary', body=lesson(day)).execute()
-    except:
-        pass
+        page_token = None
+        calendar_list = service.calendarList().list(pageToken=page_token).execute()
+        if any("UEK Plan" in calendar_list_entry['summary'] for calendar_list_entry in calendar_list['items']):
 
+            print(created_calendar['id'] + " ....")
+            print("if")
+            event = service.events().insert(calendarId=created_calendar['id'], body=lesson(day)).execute()
+        else:
+            print("Tworzê kalendarz UEK Plan")
+            page_token = calendar_list.get('nextPageToken')
+            calendar = {
+                'summary': 'UEK Plan',
+                "description": 'plan zajêæ dla UEK',
+                "location": "UEK Kraków",
+                }
+            created_calendar = service.calendars().insert(body=calendar).execute()
+
+        event = service.events().insert(calendarId=created_calendar['id'], body=lesson(day)).execute()
+        #calendar = service.calendars().get(calendarId='primary').execute()
+        print(created_calendar['id']+" ....")
+
+    except:
+        print("err")
+        pass
     'Event created: %s' % (event.get('htmlLink'))
 
 def actualEvents():
@@ -88,17 +107,6 @@ def actualEvents():
         start = event['start'].get('dateTime', event['start'].get('date'))
         print(start, event['summary'])
 
-=======
-# -*- encoding: utf-8 -*-
-#!/usr/bin/env python
-from bs4 import BeautifulSoup
-import urllib.request
-
-def htmlPlan():
-    html = urllib.request.urlopen('http://planzajec.uek.krakow.pl/index.php?typ=G&id=116071&okres=1')
-    return html
-
->>>>>>> Stashed changes
 def dataGen():
     html=htmlPlan()
     soup = BeautifulSoup(html, 'html.parser')
@@ -122,14 +130,9 @@ def dataGen():
 
 def lesson(day):
     datasets=dataGen()
-<<<<<<< Updated upstream
 
-    start=(datasets[day].get("Termin")+"T"+datasets[day].get("DzieÅ„, godzina")[3:8]+":00+01:00")
-    end=(datasets[day].get("Termin")+"T"+datasets[day].get("DzieÅ„, godzina")[11:16]+":00+01:00")
-=======
-    start=(datasets[day].get("Termin")+"T"+datasets[day].get("DzieÅ„, godzina")[3:8]+":00-00:00")
-    end=(datasets[day].get("Termin")+"T"+datasets[day].get("DzieÅ„, godzina")[11:16]+":00-00:00")
->>>>>>> Stashed changes
+    start=(datasets[day].get("Termin")+"T"+datasets[day].get("Dzieñ, godzina")[3:8]+":00+01:00")
+    end=(datasets[day].get("Termin")+"T"+datasets[day].get("Dzieñ, godzina")[11:16]+":00+01:00")
 
     event = {
         'summary': datasets[day].get("Przedmiot"),
@@ -144,22 +147,56 @@ def lesson(day):
     }
     return event
 
-<<<<<<< Updated upstream
+def newCalendarList():
+    # type: () -> object
+    creds = None
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+
+    service = build('calendar', 'v3', credentials=creds)
+
+    page_token = None
+    calendar_list = service.calendarList().list(pageToken=page_token).execute()
+    if any("UEK Plan" in calendar_list_entry['summary'] for calendar_list_entry in calendar_list['items']):
+
+        print(created_calendar['id'] + " ....")
+        print("if")
+        event = service.events().insert(calendarId=created_calendar['id'], body=lesson(1)).execute()
+    else:
+        print("Tworzê kalendarz UEK Plan")
+        #page_token = calendar_list.get('nextPageToken')
+        calendar = {
+            'summary': 'UEK Plan',
+            "description": 'plan zajêæ dla UEK',
+            "location": "UEK Kraków",
+        }
+        created_calendar = service.calendars().insert(body=calendar).execute()
+
+        #event = service.events().insert(calendarId=created_calendar['id'], body=lesson(day)).execute()
+        # calendar = service.calendars().get(calendarId='primary').execute()
+        print(created_calendar['id'] + " ....")
+
+
 
 if __name__ == '__main__':
-    for day in range(len(dataGen())):
-       try:
-           main(day)
-           print("Dodano wydarzenie "+" ' "+dataGen()[day].get("Przedmiot")+"' ")
-       except:
-           print("Nie udaÅ‚o siÄ™ dodaÄ‡ lekcji nr."+" ' "+dataGen()[day].get("Termin")+"' ")
-           pass
+    newCalendarList()
+    #for day in range(1):
+     #  try:
+     #      main(day)
+      #     print("Dodano "+" ' "+dataGen()[day].get("Przedmiot")+"' ")
+       #except:
+        #   print("Nie uda³o siê dodaæ "+" ' "+dataGen()[day].get("Przedmiot")+"' ")
+         #  pass
     #print(lesson(2))
-=======
-#print(lesson(2))
-#print("Nie udaÅ‚o siÄ™ dodaÄ‡ lekcji nr. 2"+" ' "+dataGen()[2].get("Termin")+"'")
-print(dataGen())
-
-
-
->>>>>>> Stashed changes
